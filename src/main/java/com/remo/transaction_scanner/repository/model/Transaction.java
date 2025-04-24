@@ -16,7 +16,7 @@ public class Transaction {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  private int id;
 
   @Column(name = "user_id", nullable = false)
   private String userId;
@@ -26,7 +26,4 @@ public class Transaction {
 
   @Column(name = "timestamp", nullable = false)
   private Timestamp timestamp;
-
-  @Column(name = "type", nullable = false)
-  private String type;
 }

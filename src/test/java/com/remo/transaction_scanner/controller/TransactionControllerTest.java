@@ -51,7 +51,6 @@ class TransactionControllerTest {
             .userId("user1")
             .amount(new BigDecimal("42.00"))
             .timestamp(Timestamp.valueOf(LocalDateTime.of(2025, 4, 24, 12, 0)))
-            .type("DEPOSIT")
             .suspicious(false)
             .suspiciousReason(null)
             .build();

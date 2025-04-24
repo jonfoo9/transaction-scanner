@@ -2,84 +2,78 @@ package com.remo.transaction_scanner.service;
 
 import com.remo.transaction_scanner.model.TransactionResponse;
 import com.remo.transaction_scanner.repository.*;
-import com.remo.transaction_scanner.repository.model.SuspiciousFrequentTransactions;
-import com.remo.transaction_scanner.repository.model.SuspiciousHighVolumeTransactions;
-import com.remo.transaction_scanner.repository.model.SuspiciousRapidTransactions;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 
 @Service
 public class SuspiciousTransactionFinder {
 
-  private final SuspiciousHighVolumeTransactionsRepository
-      suspiciousHighVolumeTransactionsRepository;
-  private final SuspiciousRapidTransactionsRepository suspiciousRapidTransactionsRepository;
-  private final SuspiciousFrequentTransactionsRepository suspiciousFrequentTransactionsRepository;
+  private final JdbcTemplate jdbcTemplate;
+
+  private static final RowMapper<TransactionResponse> suspiciousViewRowMapper =
+      (rs, rowNum) ->
+          TransactionResponse.builder()
+              .id(rs.getLong("id"))
+              .userId(rs.getString("user_id"))
+              .amount(rs.getBigDecimal("amount"))
+              .timestamp(rs.getTimestamp("timestamp"))
+              .build();
 
   @Autowired
-  public SuspiciousTransactionFinder(
-      SuspiciousHighVolumeTransactionsRepository suspiciousHighVolumeTransactionsRepository,
-      SuspiciousRapidTransactionsRepository suspiciousRapidTransactionsRepository,
-      SuspiciousFrequentTransactionsRepository suspiciousFrequentTransactionsRepository) {
-    this.suspiciousHighVolumeTransactionsRepository = suspiciousHighVolumeTransactionsRepository;
-    this.suspiciousRapidTransactionsRepository = suspiciousRapidTransactionsRepository;
-    this.suspiciousFrequentTransactionsRepository = suspiciousFrequentTransactionsRepository;
+  public SuspiciousTransactionFinder(JdbcTemplate jdbcTemplate) {
+    this.jdbcTemplate = jdbcTemplate;
   }
 
   public List<TransactionResponse> getAllSuspiciousTransactionForUserId(String userId) {
-    List<SuspiciousFrequentTransactions> suspiciousFrequentTransactions =
-        suspiciousFrequentTransactionsRepository.findAll();
-    List<SuspiciousHighVolumeTransactions> suspiciousHighVolumeTransactions =
-        suspiciousHighVolumeTransactionsRepository.findAll();
-    List<SuspiciousRapidTransactions> suspiciousRapidTransactions =
-        suspiciousRapidTransactionsRepository.findAll();
-
     List<TransactionResponse> allSuspiciousTransactions = new ArrayList<>();
+    Map<Long, TransactionResponse> suspiciousTransactions = new HashMap<>();
 
-    suspiciousFrequentTransactions.forEach(
-        sft -> {
-          TransactionResponse transactionResponse =
-              TransactionResponse.builder()
-                  .userId(sft.getUserId())
-                  .amount(sft.getAmount())
-                  .timestamp(sft.getTimestamp())
-                  .type(sft.getType())
-                  .suspicious(true) // You can add additional suspicious flag logic if needed
-                  .suspiciousReason("Frequent transaction")
-                  .build();
-          allSuspiciousTransactions.add(transactionResponse);
+    String freqSql =
+        "SELECT id, user_id, amount, timestamp, cnt FROM transaction_scanner.suspicious_frequent_transactions WHERE user_id = ?";
+    List<TransactionResponse> frequent =
+        jdbcTemplate.query(freqSql, suspiciousViewRowMapper, userId);
+    frequent.forEach(
+        tr -> {
+          tr.getSuspiciousReason().add("Frequent transaction");
+          suspiciousTransactions.put(tr.getId(), tr);
         });
 
-    suspiciousHighVolumeTransactions.forEach(
-        shvt -> {
-          TransactionResponse transactionResponse =
-              TransactionResponse.builder()
-                  .userId(shvt.getUserId())
-                  .amount(shvt.getAmount())
-                  .timestamp(shvt.getTimestamp())
-                  .type(shvt.getType())
-                  .suspicious(true)
-                  .suspiciousReason("High volume transaction")
-                  .build();
-          allSuspiciousTransactions.add(transactionResponse);
+    String highVolSql =
+        "SELECT id, user_id, amount, timestamp FROM transaction_scanner.suspicious_high_volume_transactions WHERE user_id = ?";
+    List<TransactionResponse> highVolume =
+        jdbcTemplate.query(highVolSql, suspiciousViewRowMapper, userId);
+    highVolume.forEach(
+        tr -> {
+          if (suspiciousTransactions.containsKey(tr.getId())) {
+            TransactionResponse existing = suspiciousTransactions.get(tr.getId());
+            existing.getSuspiciousReason().add("High volume transaction");
+          } else {
+            tr.getSuspiciousReason().add("High volume transaction");
+            suspiciousTransactions.put(tr.getId(), tr);
+          }
         });
 
-    suspiciousRapidTransactions.forEach(
-        srt -> {
-          TransactionResponse transactionResponse =
-              TransactionResponse.builder()
-                  .userId(srt.getUserId())
-                  .amount(srt.getAmount())
-                  .timestamp(srt.getTimestamp())
-                  .type(srt.getType())
-                  .suspicious(true)
-                  .suspiciousReason("Rapid transaction")
-                  .build();
-          allSuspiciousTransactions.add(transactionResponse);
+    String rapidSql =
+        "SELECT id, user_id, amount, timestamp, five_min_count FROM transaction_scanner.suspicious_rapid_transactions WHERE user_id = ?";
+    List<TransactionResponse> rapid = jdbcTemplate.query(rapidSql, suspiciousViewRowMapper, userId);
+    rapid.forEach(
+        tr -> {
+          if (suspiciousTransactions.containsKey(tr.getId())) {
+            TransactionResponse existing = suspiciousTransactions.get(tr.getId());
+            existing.getSuspiciousReason().add("Rapid transaction");
+          } else {
+            tr.getSuspiciousReason().add("Rapid transaction");
+            suspiciousTransactions.put(tr.getId(), tr);
+          }
         });
+    allSuspiciousTransactions.addAll(rapid);
 
-    return allSuspiciousTransactions;
+    return new ArrayList<>(suspiciousTransactions.values());
   }
 }

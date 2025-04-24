@@ -3,11 +3,10 @@
 CREATE SCHEMA IF NOT EXISTS transaction_scanner;
 
 CREATE TABLE IF NOT EXISTS transaction_scanner.transactions (
-    id SERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL,
+    id BIGSERIAL PRIMARY KEY,
+    user_id VARCHAR(255) NOT NULL,
     amount NUMERIC(12, 2) NOT NULL,
-    timestamp TIMESTAMP NOT NULL,
-    type VARCHAR(20) NOT NULL
+    timestamp TIMESTAMP NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS transaction_scanner.suspicious_transaction_configuration (
@@ -24,7 +23,7 @@ INSERT INTO transaction_scanner.suspicious_transaction_configuration (
 
 CREATE VIEW transaction_scanner.suspicious_frequent_transactions AS
 WITH cfg AS (
-    SELECT suspicious_transaction_threshold AS n
+    SELECT frequent_suspicious_transaction_threshold AS n
     FROM transaction_scanner.suspicious_transaction_configuration
     LIMIT 1
 ),
@@ -34,11 +33,10 @@ txns_with_count AS (
         t.user_id,
         t.amount,
         t.timestamp,
-        t.type,
         COUNT(*) OVER (PARTITION BY t.user_id, date_trunc('hour', t.timestamp)) AS cnt
     FROM transaction_scanner.transactions t
 )
-SELECT t.id, t.user_id, t.cnt, t.amount, t.timestamp, t.type
+SELECT t.id, t.user_id, t.cnt, t.amount, t.timestamp
 FROM txns_with_count t
 CROSS JOIN cfg
 WHERE t.cnt >= cfg.n
@@ -47,19 +45,26 @@ ORDER BY t.cnt DESC;
 CREATE VIEW transaction_scanner.suspicious_high_volume_transactions AS
 SELECT *
 FROM transaction_scanner.transactions
-WHERE amount >= 10000
+WHERE amount >= 10000;
 
-CREATE VIEW transaction_scanner.suspicious_rapid_transfers AS
+CREATE VIEW transaction_scanner.suspicious_rapid_transactions AS
+WITH RapidCounts AS (
+    SELECT
+        t.id,
+        t.user_id,
+        t.amount,
+        t.timestamp,
+        COUNT(*) OVER (PARTITION BY t.user_id, floor(date_part('minute', t.timestamp) / 5)) as five_min_count
+    FROM transaction_scanner.transactions t
+)
 SELECT
-    t.id,
-    t.user_id,
-    t.amount,
-    t.timestamp,
-    t.type,
-    COUNT(*) OVER (PARTITION BY t.user_id, floor(date_part('minute', t.timestamp) / 5) * interval '5 minutes' ) as five_min_count
-FROM transaction_scanner.transactions t
-WHERE five_min_count >= 3
-
+    id,
+    user_id,
+    amount,
+    timestamp,
+    five_min_count
+FROM RapidCounts
+WHERE five_min_count >= 3;
 
 --CREATE OR REPLACE FUNCTION refresh_suspicious_frequent_transactions()
 --RETURNS TRIGGER AS $$

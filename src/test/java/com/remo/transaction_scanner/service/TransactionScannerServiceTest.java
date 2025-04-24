@@ -48,16 +48,14 @@ class TransactionScannerServiceTest {
             .userId(request.getUserId())
             .amount(request.getAmount())
             .timestamp(request.getTimestamp())
-            .type("")
             .build();
-    savedEntity.setId(1L);
+    savedEntity.setId(1);
 
     expectedResponse =
         TransactionResponse.builder()
             .userId("user1")
             .amount(new BigDecimal("123.45"))
             .timestamp(request.getTimestamp())
-            .type("")
             .build();
   }
 
@@ -71,7 +69,6 @@ class TransactionScannerServiceTest {
     assertThat(response.getUserId()).isEqualTo("user1");
     assertThat(response.getAmount()).isEqualByComparingTo("123.45");
     assertThat(response.getTimestamp()).isEqualTo(request.getTimestamp());
-    assertThat(response.getType()).isEqualTo("");
   }
 
   @Test

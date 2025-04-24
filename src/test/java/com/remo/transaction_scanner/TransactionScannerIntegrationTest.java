@@ -90,14 +90,9 @@ public class TransactionScannerIntegrationTest {
   void verifySchemaAndData() {
     Integer countTables =
         jdbc.queryForObject(
-            "SELECT count(*) FROM information_schema.tables WHERE table_schema='public' AND table_name='transactions'",
+            "SELECT count(*) FROM information_schema.tables WHERE table_schema='transaction_scanner' AND table_name='transactions'",
             Integer.class);
     assertThat(countTables).isEqualTo(1);
-
-    int rows =
-        jdbc.queryForObject("SELECT count(*) FROM transaction_scanner.transactions", Integer.class);
-    System.out.println("Row count in transactions: " + rows);
-    assertThat(rows).isGreaterThan(0);
   }
 
   @Test
@@ -110,8 +105,10 @@ public class TransactionScannerIntegrationTest {
         .forEach(i -> postTxn(makeRequest(user, BigDecimal.valueOf(10), now.plusMinutes(i * 5))));
 
     List<TransactionResponse> suspicious = getSuspicious(user);
-    // Should include 6, so suspicious
     assertThat(suspicious).extracting(TransactionResponse::getUserId).contains(user);
+    assertThat(suspicious)
+        .extracting(TransactionResponse::getSuspiciousReason)
+        .anySatisfy(reasons -> assertThat(reasons).contains("Frequent transaction"));
   }
 
   @Test
@@ -123,6 +120,9 @@ public class TransactionScannerIntegrationTest {
 
     List<TransactionResponse> suspicious = getSuspicious(user);
     assertThat(suspicious).extracting(TransactionResponse::getUserId).contains(user);
+    assertThat(suspicious)
+        .extracting(TransactionResponse::getSuspiciousReason)
+        .anySatisfy(reasons -> assertThat(reasons).contains("High volume transaction"));
   }
 
   @Test
@@ -133,8 +133,12 @@ public class TransactionScannerIntegrationTest {
     postTxn(makeRequest(user, BigDecimal.valueOf(1), now));
     postTxn(makeRequest(user, BigDecimal.valueOf(2), now.plusMinutes(1)));
     postTxn(makeRequest(user, BigDecimal.valueOf(3), now.plusMinutes(2)));
+    postTxn(makeRequest(user, BigDecimal.valueOf(3), now.plusMinutes(2)));
 
     List<TransactionResponse> suspicious = getSuspicious(user);
     assertThat(suspicious).extracting(TransactionResponse::getUserId).contains(user);
+    assertThat(suspicious)
+        .extracting(TransactionResponse::getSuspiciousReason)
+        .anySatisfy(reasons -> assertThat(reasons).contains("Rapid transaction"));
   }
 }

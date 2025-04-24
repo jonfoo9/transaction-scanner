@@ -43,7 +43,6 @@ public class TransactionScannerService {
           .userId(saved.getUserId())
           .amount(saved.getAmount())
           .timestamp(saved.getTimestamp())
-          .type(saved.getType())
           .build();
 
     } catch (DataIntegrityViolationException | PersistenceException e) {
