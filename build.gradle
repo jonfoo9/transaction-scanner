@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.4'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id "com.diffplug.spotless" version "7.0.0"
 }
 
 group = 'com.remo'
@@ -19,10 +20,42 @@ repositories {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+
+	implementation "org.flywaydb:flyway-core"
+	implementation "org.flywaydb:flyway-database-postgresql"
+
+	implementation("org.postgresql:postgresql")
+
+	compileOnly 'org.projectlombok:lombok:1.18.30'
+	annotationProcessor 'org.projectlombok:lombok:1.18.30'
+	testCompileOnly 'org.projectlombok:lombok:1.18.30'
+	testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.6'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testImplementation platform("org.junit:junit-bom:5.11.0")
+	testImplementation "org.junit.jupiter:junit-jupiter"
+	testImplementation 'org.mockito:mockito-core:5.6.0'
+	testImplementation 'org.mockito:mockito-junit-jupiter:5.11.0'
+	testImplementation 'com.github.tomakehurst:wiremock-jre8:2.35.0'
+	testImplementation "org.testcontainers:testcontainers:1.21.0"
+	testImplementation "org.testcontainers:junit-jupiter:1.21.0"
+	testImplementation "org.testcontainers:postgresql:1.21.0"
+	testImplementation "org.springframework.boot:spring-boot-testcontainers"
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+spotless {
+	java {
+		target 'src/**/*.java'
+		googleJavaFormat()
+	}
 }

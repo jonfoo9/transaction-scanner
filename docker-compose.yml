@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:17
+    container_name: postgres_local
+    environment:
+      POSTGRES_DB: transactions
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - docker_network
+    restart: unless-stopped
+
+  app:
+    build: .
+    container_name: transaction_scanner
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/transactions
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: pass
+    networks:
+      - docker_network
+
+volumes:
+  postgres_data:
+
+networks:
+  docker_network:
+    driver: bridge
