@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.remo.transaction_scanner.model.TransactionRequest;
 import com.remo.transaction_scanner.model.TransactionResponse;
 import java.math.BigDecimal;
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -65,11 +64,7 @@ public class TransactionScannerIntegrationTest {
 
   private TransactionRequest makeRequest(
       String userId, BigDecimal amount, LocalDateTime timestamp) {
-    return TransactionRequest.builder()
-        .userId(userId)
-        .amount(amount)
-        .timestamp(Timestamp.valueOf(timestamp))
-        .build();
+    return TransactionRequest.builder().userId(userId).amount(amount).build();
   }
 
   private void postTxn(TransactionRequest req) {

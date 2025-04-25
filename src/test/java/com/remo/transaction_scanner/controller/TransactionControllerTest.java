@@ -44,7 +44,6 @@ class TransactionControllerTest {
     req = new TransactionRequest();
     req.setUserId("user1");
     req.setAmount(new BigDecimal("42.00"));
-    req.setTimestamp(Timestamp.valueOf(LocalDateTime.of(2025, 4, 24, 12, 0)));
 
     res =
         TransactionResponse.builder()

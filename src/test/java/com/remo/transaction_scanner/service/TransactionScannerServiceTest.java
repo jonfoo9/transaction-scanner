@@ -12,7 +12,7 @@ import com.remo.transaction_scanner.repository.model.Transaction;
 import jakarta.persistence.PersistenceException;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
+import java.time.*;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,24 +30,26 @@ class TransactionScannerServiceTest {
 
   @Mock private SuspiciousTransactionFinder suspiciousTransactionFinder;
 
+  @Mock private Clock clock;
+
   @InjectMocks private TransactionScannerService service;
 
   private TransactionRequest request;
   private Transaction savedEntity;
   private TransactionResponse expectedResponse;
+  private final Instant fixedInstant = Instant.parse("2025-04-25T10:15:30Z");
 
   @BeforeEach
   void setUp() {
     request = new TransactionRequest();
     request.setUserId("user1");
     request.setAmount(new BigDecimal("123.45"));
-    request.setTimestamp(Timestamp.valueOf(LocalDateTime.of(2025, 4, 24, 12, 0)));
 
     savedEntity =
         Transaction.builder()
             .userId(request.getUserId())
             .amount(request.getAmount())
-            .timestamp(request.getTimestamp())
+            .timestamp(Timestamp.from(fixedInstant))
             .build();
     savedEntity.setId(1);
 
@@ -55,24 +57,30 @@ class TransactionScannerServiceTest {
         TransactionResponse.builder()
             .userId("user1")
             .amount(new BigDecimal("123.45"))
-            .timestamp(request.getTimestamp())
+            .timestamp(Timestamp.from(fixedInstant))
             .build();
   }
 
   @Test
   void saveTransaction_success() {
     when(transactionRepository.save(any(Transaction.class))).thenReturn(savedEntity);
+    ZoneId zone = ZoneOffset.UTC;
+    when(clock.instant()).thenReturn(fixedInstant);
+    when(clock.getZone()).thenReturn(zone);
 
     TransactionResponse response = service.saveTransaction(request);
 
     assertThat(response).isNotNull();
     assertThat(response.getUserId()).isEqualTo("user1");
     assertThat(response.getAmount()).isEqualByComparingTo("123.45");
-    assertThat(response.getTimestamp()).isEqualTo(request.getTimestamp());
+    assertThat(response.getTimestamp()).isEqualTo(Timestamp.from(fixedInstant));
   }
 
   @Test
   void saveTransaction_dataIntegrityViolation_throwsRuntime() {
+    ZoneId zone = ZoneOffset.UTC;
+    when(clock.instant()).thenReturn(fixedInstant);
+    when(clock.getZone()).thenReturn(zone);
     when(transactionRepository.save(any(Transaction.class)))
         .thenThrow(new DataIntegrityViolationException("constraint"));
 
@@ -83,6 +91,9 @@ class TransactionScannerServiceTest {
 
   @Test
   void saveTransaction_persistenceException_throwsRuntime() {
+    ZoneId zone = ZoneOffset.UTC;
+    when(clock.instant()).thenReturn(fixedInstant);
+    when(clock.getZone()).thenReturn(zone);
     when(transactionRepository.save(any(Transaction.class)))
         .thenThrow(new PersistenceException("db error"));
 
@@ -93,6 +104,9 @@ class TransactionScannerServiceTest {
 
   @Test
   void saveTransaction_unexpectedException_throwsRuntime() {
+    ZoneId zone = ZoneOffset.UTC;
+    when(clock.instant()).thenReturn(fixedInstant);
+    when(clock.getZone()).thenReturn(zone);
     when(transactionRepository.save(any(Transaction.class)))
         .thenThrow(new RuntimeException("oops"));
 
