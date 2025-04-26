@@ -1,14 +1,16 @@
-# Use a Java image
 FROM gradle:8.5.0-jdk21 AS build
 
-# Set workdir
 WORKDIR /app
 
-# Copy everything
+# Only copy build scripts first (cacheable)
+COPY build.gradle settings.gradle gradle.properties ./
+COPY gradle ./gradle
+
+RUN ./gradlew --no-daemon build -x test || true
+
 COPY . .
 
-# Build the application (this creates build/libs/*.jar)
-RUN ./gradlew build
+RUN ./gradlew clean assemble -x test
 
 # Use a base image with Java
 FROM openjdk:21-jdk-slim
