@@ -6,6 +6,10 @@ using predefined rules based on transaction frequency, volume, and rapid transac
 # Prerequisites
 For running the service, ensure you have `Docker` installed locally
 
+## Local development
+Ensure you have Java 21 installed.
+In the project direction, run 
+
 # Getting Started
 Follow these steps to get the service up and running:
 
@@ -24,16 +28,24 @@ The endpoints are auto documented with Swagger and can be found at
 
 Below are the endpoints that are available 
 
+## api/v1/transactions
+
+### POST transaction
 **Endpoint**: `POST` `/api/v1/transactions`
 
 ***Overview***: Sends a transaction with `user_id` and `amount` to the backend
 
 It should be noted that `Timestamps` are not submitted in the request. For security, timestamps are always generated serverside. 
 
+<img title="Example POST usage in Swagger" alt="POST usage in Swagger" src="images/post_request.png" />
 
-**Endpoint** `GET` 	`/api/v1/users/{userId}/transactions/suspicious`
+
+### GET suspicious transaction
+**Endpoint**: `GET` 	`/api/v1/users/{userId}/transactions/suspicious`
 
 ***Overview***: Gets list of suspicious transaction with the `suspicious reason` for a given userId
+
+<img title="Example GET usage in Swagger" alt="GET usage in Swagger" src="images/get_request.png" />
 
 ## Technologies Used
 - **Java 21** 
@@ -133,6 +145,20 @@ relevant error messages.
 
 
 # Testing
+
+Running the tests can be done using Gradle
+
+## Mac
+To run tests locally on Mac
+```bash
+`./gradlew test`
+```
+
+## Windows
+```bash
+gradlew.bat test
+```
+
 
 ## Unit testing
 Unit testing was done to ensure basic and expected functionality of all components
