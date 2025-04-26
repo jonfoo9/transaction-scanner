@@ -61,7 +61,7 @@ class TransactionControllerTest {
 
     mockMvc
         .perform(
-            post("/transactions/transaction/")
+            post("/api/v1/transactions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(req)))
         .andExpect(status().isCreated())
@@ -81,7 +81,7 @@ class TransactionControllerTest {
 
     mockMvc
         .perform(
-            post("/transactions/transaction/")
+            post("/api/v1/transactions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(req)))
         .andExpect(status().isBadRequest())
@@ -98,7 +98,7 @@ class TransactionControllerTest {
 
     mockMvc
         .perform(
-            post("/transactions/transaction/")
+            post("/api/v1/transactions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(req)))
         .andExpect(status().isInternalServerError())
@@ -115,7 +115,7 @@ class TransactionControllerTest {
 
     mockMvc
         .perform(
-            post("/transactions/transaction/")
+            post("/api/v1/transactions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(req)))
         .andExpect(status().isInternalServerError())
@@ -126,7 +126,9 @@ class TransactionControllerTest {
   void getSuspiciousTransactions_noContent() throws Exception {
     Mockito.when(service.getSuspiciousTransactions("user1")).thenReturn(Collections.emptyList());
 
-    mockMvc.perform(get("/transactions/suspicious/user1")).andExpect(status().isNoContent());
+    mockMvc
+        .perform(get("/api/v1/users/user1/transactions/suspicious"))
+        .andExpect(status().isNoContent());
   }
 
   @Test
@@ -135,7 +137,7 @@ class TransactionControllerTest {
     Mockito.when(service.getSuspiciousTransactions("user1")).thenReturn(list);
 
     mockMvc
-        .perform(get("/transactions/suspicious/user1"))
+        .perform(get("/api/v1/users/user1/transactions/suspicious"))
         .andExpect(status().isOk())
         .andExpect(content().json(objectMapper.writeValueAsString(list)));
   }
@@ -152,7 +154,7 @@ class TransactionControllerTest {
             "The transaction data is invalid or violates integrity constraints.");
 
     mockMvc
-        .perform(get("/transactions/suspicious/user1"))
+        .perform(get("/api/v1/users/user1/transactions/suspicious"))
         .andExpect(status().isBadRequest())
         .andExpect(content().json(objectMapper.writeValueAsString(err)));
   }
@@ -167,7 +169,7 @@ class TransactionControllerTest {
             500, "SERVER_ERROR", "There was an error while processing the transaction.");
 
     mockMvc
-        .perform(get("/transactions/suspicious/user1"))
+        .perform(get("/api/v1/users/user1/transactions/suspicious"))
         .andExpect(status().isInternalServerError())
         .andExpect(content().json(objectMapper.writeValueAsString(err)));
   }
@@ -182,7 +184,7 @@ class TransactionControllerTest {
             500, "UNKNOWN_ERROR", "An unexpected error occurred. Please try again later.");
 
     mockMvc
-        .perform(get("/transactions/suspicious/user1"))
+        .perform(get("/api/v1/users/user1/transactions/suspicious"))
         .andExpect(status().isInternalServerError())
         .andExpect(content().json(objectMapper.writeValueAsString(err)));
   }

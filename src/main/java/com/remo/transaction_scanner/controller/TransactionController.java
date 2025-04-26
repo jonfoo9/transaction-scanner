@@ -5,10 +5,6 @@ import com.remo.transaction_scanner.model.TransactionRequest;
 import com.remo.transaction_scanner.model.TransactionResponse;
 import com.remo.transaction_scanner.service.TransactionScannerService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.PersistenceException;
 import jakarta.validation.Valid;
@@ -20,7 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/transactions")
+@RequestMapping("/api/v1")
 @Tag(name = "Transaction Management", description = "Endpoints for managing transactions")
 public class TransactionController {
 
@@ -31,17 +27,8 @@ public class TransactionController {
     this.transactionService = transactionService;
   }
 
-  @Operation(summary = "Post a transaction", description = "Post transaction to system.")
-  @ApiResponse(
-      responseCode = "200",
-      description = "Ok",
-      content =
-          @Content(
-              mediaType = "application/json",
-              schema = @Schema(implementation = TransactionRequest.class)))
-  @ApiResponse(responseCode = "400", description = "Invalid transaction")
-  @ApiResponse(responseCode = "500", description = "Sever error")
-  @PostMapping("/transaction/")
+  @Operation(summary = "Post a transaction", description = "Posts transaction.")
+  @PostMapping("/transactions")
   public ResponseEntity<?> postTransaction(@Valid @RequestBody TransactionRequest transaction) {
     try {
       TransactionResponse savedTransaction = transactionService.saveTransaction(transaction);
@@ -74,16 +61,7 @@ public class TransactionController {
   @Operation(
       summary = "Get suspicious transactions for a user",
       description = "Retrieves all suspicious transactions for the given user ID.")
-  @ApiResponse(
-      responseCode = "200",
-      description = "OK",
-      content =
-          @Content(
-              mediaType = "application/json",
-              array = @ArraySchema(schema = @Schema(implementation = TransactionResponse.class))))
-  @ApiResponse(responseCode = "400", description = "Invalid transaction")
-  @ApiResponse(responseCode = "500", description = "Internal server error")
-  @GetMapping("/suspicious/{userId}")
+  @GetMapping("/users/{userId}/transactions/suspicious")
   public ResponseEntity<List<TransactionResponse>> getSuspiciousTransactions(
       @PathVariable String userId) {
     try {

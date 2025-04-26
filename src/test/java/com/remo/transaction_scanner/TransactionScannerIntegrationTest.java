@@ -59,7 +59,7 @@ public class TransactionScannerIntegrationTest {
 
   @BeforeAll
   void setUp() {
-    this.baseUrl = "http://localhost:" + port + "/transactions";
+    this.baseUrl = "http://localhost:" + port + "/api/v1";
   }
 
   private TransactionRequest makeRequest(
@@ -71,12 +71,13 @@ public class TransactionScannerIntegrationTest {
     HttpHeaders headers = new HttpHeaders();
     headers.add(HttpHeaders.CONTENT_TYPE, "application/json");
     restTemplate.postForEntity(
-        baseUrl + "/transaction/", new HttpEntity<>(req, headers), TransactionResponse.class);
+        baseUrl + "/transactions", new HttpEntity<>(req, headers), TransactionResponse.class);
   }
 
   private List<TransactionResponse> getSuspicious(String userId) {
     ResponseEntity<TransactionResponse[]> resp =
-        restTemplate.getForEntity(baseUrl + "/suspicious/" + userId, TransactionResponse[].class);
+        restTemplate.getForEntity(
+            baseUrl + "/users/" + userId + "/transactions/suspicious", TransactionResponse[].class);
     assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
     return List.of(resp.getBody());
   }
