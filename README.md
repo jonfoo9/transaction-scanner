@@ -21,8 +21,8 @@ docker compose up
 
 
 ## Local development
-- Ensure Java 21 installed (java --version)
-- Use Gradle wrapper (./gradlew)
+Ensure Java 21 installed
+Use Gradle wrapper (./gradlew) for build and testing
 
 Run the application:
 
