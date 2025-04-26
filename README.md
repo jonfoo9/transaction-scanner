@@ -80,13 +80,14 @@ multiple suspicious criteria.
 A `transaction` is posted through the `/api/v1/transactions` endpoint.
 
 The `TransactionScannerService` saves the transaction to the DB.
-When users query suspicious transactions with `/api/v1/users/{userId}/transactions/suspicious`
+
+Users query suspicious transactions with `/api/v1/users/{userId}/transactions/suspicious`
 
 Suspicious transactions are detected based on:
-- Frequent Transactions (via `suspicious_frequent_transactions` view).
+- Frequent Transactions (via the `suspicious_frequent_transactions` view).
   - The level of frequency can be tuned in the `suspicious_transaction_configuration` table
-- High Volume Transactions (via `suspicious_high_volume_transactions` view)
-- Rapid Transactions (via `suspicious_rapid_transactions` view)
+- High Volume Transactions (via the `suspicious_high_volume_transactions` view)
+- Rapid Transactions (via the `suspicious_rapid_transactions` view)
 
 ## Components
 
