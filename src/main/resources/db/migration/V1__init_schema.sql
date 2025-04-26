@@ -35,6 +35,7 @@ txns_with_count AS (
         t.timestamp,
         COUNT(*) OVER (PARTITION BY t.user_id, date_trunc('hour', t.timestamp)) AS cnt
     FROM transaction_scanner.transactions t
+    WHERE t.amount <= 100
 )
 SELECT t.id, t.user_id, t.cnt, t.amount, t.timestamp
 FROM txns_with_count t
