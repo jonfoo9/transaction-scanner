@@ -6,12 +6,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class SuspiciousTransactionFinder {
 
   private final JdbcTemplate jdbcTemplate;
@@ -44,6 +46,11 @@ public class SuspiciousTransactionFinder {
           suspiciousTransactions.put(tr.getId(), tr);
         });
 
+    log.info(
+        "Found {} frequent transactions for user {}",
+        frequent != null ? frequent.size() : 0,
+        userId);
+
     String highVolSql =
         "SELECT id, user_id, amount, timestamp FROM transaction_scanner.suspicious_high_volume_transactions WHERE user_id = ?";
     List<TransactionResponse> highVolume =
@@ -59,6 +66,11 @@ public class SuspiciousTransactionFinder {
           }
         });
 
+    log.info(
+        "Found {} high volume transactions for user {}",
+        highVolume != null ? highVolume.size() : 0,
+        userId);
+
     String rapidSql =
         "SELECT id, user_id, amount, timestamp, five_min_count FROM transaction_scanner.suspicious_rapid_transactions WHERE user_id = ?";
     List<TransactionResponse> rapid = jdbcTemplate.query(rapidSql, suspiciousViewRowMapper, userId);
@@ -72,8 +84,12 @@ public class SuspiciousTransactionFinder {
             suspiciousTransactions.put(tr.getId(), tr);
           }
         });
+
+    log.info("Found {} rapid transactions for user {}", rapid != null ? rapid.size() : 0, userId);
     allSuspiciousTransactions.addAll(rapid);
 
-    return new ArrayList<>(suspiciousTransactions.values());
+    return suspiciousTransactions.values().stream()
+        .sorted((tr1, tr2) -> tr2.getTimestamp().compareTo(tr1.getTimestamp()))
+        .toList();
   }
 }
