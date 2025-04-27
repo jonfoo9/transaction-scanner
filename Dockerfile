@@ -3,7 +3,7 @@ FROM gradle:8.5.0-jdk21 AS build
 WORKDIR /app
 
 # Only copy build scripts first (cacheable)
-COPY build.gradle settings.gradle gradle.properties ./
+COPY build.gradle settings.gradle ./
 COPY gradle ./gradle
 
 RUN ./gradlew --no-daemon build -x test || true
