@@ -2,10 +2,22 @@
 
 CREATE SCHEMA IF NOT EXISTS transaction_scanner;
 
+
+CREATE TABLE IF NOT EXISTS transaction_scanner.transaction_type (
+    id SERIAL PRIMARY KEY,
+    transaction_type VARCHAR(255) NOT NULL UNIQUE
+);
+
+INSERT INTO transaction_scanner.transaction_type (transaction_type)
+VALUES ('WITHDRAWAL'), ('DEPOSIT'), ('TRANSFER')
+ON CONFLICT DO NOTHING;
+
+
 CREATE TABLE IF NOT EXISTS transaction_scanner.transactions (
     id BIGSERIAL PRIMARY KEY,
     user_id VARCHAR(255) NOT NULL,
     amount NUMERIC(12, 2) NOT NULL,
+    transaction_type VARCHAR(255) NOT NULL REFERENCES transaction_scanner.transaction_type(transaction_type),
     timestamp TIMESTAMP NOT NULL
 );
 
@@ -33,11 +45,12 @@ txns_with_count AS (
         t.user_id,
         t.amount,
         t.timestamp,
+        t.transaction_type,
         COUNT(*) OVER (PARTITION BY t.user_id, date_trunc('hour', t.timestamp)) AS cnt
     FROM transaction_scanner.transactions t
     WHERE t.amount <= 100
 )
-SELECT t.id, t.user_id, t.cnt, t.amount, t.timestamp
+SELECT t.id, t.user_id, t.cnt, t.amount, t.timestamp, t.transaction_type
 FROM txns_with_count t
 CROSS JOIN cfg
 WHERE t.cnt >= cfg.n
@@ -55,6 +68,7 @@ WITH RapidCounts AS (
         t.user_id,
         t.amount,
         t.timestamp,
+        t.transaction_type,
         COUNT(*) OVER (PARTITION BY t.user_id, floor(date_part('minute', t.timestamp) / 5)) as five_min_count
     FROM transaction_scanner.transactions t
 )
@@ -63,7 +77,8 @@ SELECT
     user_id,
     amount,
     timestamp,
-    five_min_count
+    five_min_count,
+    transaction_type
 FROM RapidCounts
 WHERE five_min_count >= 3;
 

@@ -20,4 +20,7 @@ public class TransactionRequest {
 
   @NotNull(message = "UserId cant be null")
   private String userId;
+
+  @NotNull(message = "Transaction type must not be null")
+  private TransactionType transactionType;
 }

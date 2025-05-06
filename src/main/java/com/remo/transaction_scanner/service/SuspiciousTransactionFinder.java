@@ -1,6 +1,7 @@
 package com.remo.transaction_scanner.service;
 
 import com.remo.transaction_scanner.model.TransactionResponse;
+import com.remo.transaction_scanner.model.TransactionType;
 import com.remo.transaction_scanner.repository.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,6 +26,7 @@ public class SuspiciousTransactionFinder {
               .userId(rs.getString("user_id"))
               .amount(rs.getBigDecimal("amount"))
               .timestamp(rs.getTimestamp("timestamp"))
+              .transactionType(TransactionType.valueOf(rs.getString("transaction_type")))
               .build();
 
   @Autowired
@@ -37,7 +39,7 @@ public class SuspiciousTransactionFinder {
     Map<Long, TransactionResponse> suspiciousTransactions = new HashMap<>();
 
     String freqSql =
-        "SELECT id, user_id, amount, timestamp, cnt FROM transaction_scanner.suspicious_frequent_transactions WHERE user_id = ?";
+        "SELECT id, user_id, amount, timestamp, cnt, transaction_type FROM transaction_scanner.suspicious_frequent_transactions WHERE user_id = ?";
     List<TransactionResponse> frequent =
         jdbcTemplate.query(freqSql, suspiciousViewRowMapper, userId);
     frequent.forEach(
@@ -52,7 +54,7 @@ public class SuspiciousTransactionFinder {
         userId);
 
     String highVolSql =
-        "SELECT id, user_id, amount, timestamp FROM transaction_scanner.suspicious_high_volume_transactions WHERE user_id = ?";
+        "SELECT id, user_id, amount, timestamp, transaction_type FROM transaction_scanner.suspicious_high_volume_transactions WHERE user_id = ?";
     List<TransactionResponse> highVolume =
         jdbcTemplate.query(highVolSql, suspiciousViewRowMapper, userId);
     highVolume.forEach(
@@ -72,7 +74,7 @@ public class SuspiciousTransactionFinder {
         userId);
 
     String rapidSql =
-        "SELECT id, user_id, amount, timestamp, five_min_count FROM transaction_scanner.suspicious_rapid_transactions WHERE user_id = ?";
+        "SELECT id, user_id, amount, timestamp, five_min_count, transaction_type FROM transaction_scanner.suspicious_rapid_transactions WHERE user_id = ?";
     List<TransactionResponse> rapid = jdbcTemplate.query(rapidSql, suspiciousViewRowMapper, userId);
     rapid.forEach(
         tr -> {

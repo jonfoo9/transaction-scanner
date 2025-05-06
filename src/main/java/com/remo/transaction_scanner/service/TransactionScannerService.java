@@ -38,6 +38,7 @@ public class TransactionScannerService {
           Transaction.builder()
               .userId(transactionRequest.getUserId())
               .amount(transactionRequest.getAmount())
+              .transactionType(transactionRequest.getTransactionType())
               .timestamp(
                   Timestamp.valueOf(
                       LocalDateTime.now(

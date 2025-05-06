@@ -53,21 +53,21 @@ class SuspiciousTransactionFinderTest {
     given(
             jdbcTemplate.query(
                 eq(
-                    "SELECT id, user_id, amount, timestamp, cnt FROM transaction_scanner.suspicious_frequent_transactions WHERE user_id = ?"),
+                    "SELECT id, user_id, amount, timestamp, cnt, transaction_type FROM transaction_scanner.suspicious_frequent_transactions WHERE user_id = ?"),
                 any(RowMapper.class),
                 eq(USER_ID)))
         .willReturn(List.of(tr1));
     given(
             jdbcTemplate.query(
                 eq(
-                    "SELECT id, user_id, amount, timestamp FROM transaction_scanner.suspicious_high_volume_transactions WHERE user_id = ?"),
+                    "SELECT id, user_id, amount, timestamp, transaction_type FROM transaction_scanner.suspicious_high_volume_transactions WHERE user_id = ?"),
                 any(RowMapper.class),
                 eq(USER_ID)))
         .willReturn(Collections.emptyList());
     given(
             jdbcTemplate.query(
                 eq(
-                    "SELECT id, user_id, amount, timestamp, five_min_count FROM transaction_scanner.suspicious_rapid_transactions WHERE user_id = ?"),
+                    "SELECT id, user_id, amount, timestamp, five_min_count, transaction_type FROM transaction_scanner.suspicious_rapid_transactions WHERE user_id = ?"),
                 any(RowMapper.class),
                 eq(USER_ID)))
         .willReturn(Collections.emptyList());
@@ -93,21 +93,21 @@ class SuspiciousTransactionFinderTest {
     given(
             jdbcTemplate.query(
                 eq(
-                    "SELECT id, user_id, amount, timestamp, cnt FROM transaction_scanner.suspicious_frequent_transactions WHERE user_id = ?"),
+                    "SELECT id, user_id, amount, timestamp, cnt, transaction_type FROM transaction_scanner.suspicious_frequent_transactions WHERE user_id = ?"),
                 any(RowMapper.class),
                 eq(USER_ID)))
         .willReturn(List.of(shared));
     given(
             jdbcTemplate.query(
                 eq(
-                    "SELECT id, user_id, amount, timestamp FROM transaction_scanner.suspicious_high_volume_transactions WHERE user_id = ?"),
+                    "SELECT id, user_id, amount, timestamp, transaction_type FROM transaction_scanner.suspicious_high_volume_transactions WHERE user_id = ?"),
                 any(RowMapper.class),
                 eq(USER_ID)))
         .willReturn(List.of(hv));
     given(
             jdbcTemplate.query(
                 eq(
-                    "SELECT id, user_id, amount, timestamp, five_min_count FROM transaction_scanner.suspicious_rapid_transactions WHERE user_id = ?"),
+                    "SELECT id, user_id, amount, timestamp, five_min_count, transaction_type FROM transaction_scanner.suspicious_rapid_transactions WHERE user_id = ?"),
                 any(RowMapper.class),
                 eq(USER_ID)))
         .willReturn(Collections.emptyList());
@@ -137,21 +137,21 @@ class SuspiciousTransactionFinderTest {
     given(
             jdbcTemplate.query(
                 eq(
-                    "SELECT id, user_id, amount, timestamp, cnt FROM transaction_scanner.suspicious_frequent_transactions WHERE user_id = ?"),
+                    "SELECT id, user_id, amount, timestamp, cnt, transaction_type FROM transaction_scanner.suspicious_frequent_transactions WHERE user_id = ?"),
                 any(RowMapper.class),
                 eq(USER_ID)))
         .willReturn(List.of(f));
     given(
             jdbcTemplate.query(
                 eq(
-                    "SELECT id, user_id, amount, timestamp FROM transaction_scanner.suspicious_high_volume_transactions WHERE user_id = ?"),
+                    "SELECT id, user_id, amount, timestamp, transaction_type FROM transaction_scanner.suspicious_high_volume_transactions WHERE user_id = ?"),
                 any(RowMapper.class),
                 eq(USER_ID)))
         .willReturn(List.of(h));
     given(
             jdbcTemplate.query(
                 eq(
-                    "SELECT id, user_id, amount, timestamp, five_min_count FROM transaction_scanner.suspicious_rapid_transactions WHERE user_id = ?"),
+                    "SELECT id, user_id, amount, timestamp, five_min_count, transaction_type FROM transaction_scanner.suspicious_rapid_transactions WHERE user_id = ?"),
                 any(RowMapper.class),
                 eq(USER_ID)))
         .willReturn(List.of(r));

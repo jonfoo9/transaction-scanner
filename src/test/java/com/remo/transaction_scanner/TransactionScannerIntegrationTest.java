@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.remo.transaction_scanner.model.TransactionRequest;
 import com.remo.transaction_scanner.model.TransactionResponse;
+import com.remo.transaction_scanner.model.TransactionType;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -63,8 +64,12 @@ public class TransactionScannerIntegrationTest {
   }
 
   private TransactionRequest makeRequest(
-      String userId, BigDecimal amount, LocalDateTime timestamp) {
-    return TransactionRequest.builder().userId(userId).amount(amount).build();
+      String userId, BigDecimal amount, TransactionType transactionType) {
+    return TransactionRequest.builder()
+        .userId(userId)
+        .amount(amount)
+        .transactionType(transactionType)
+        .build();
   }
 
   private void postTxn(TransactionRequest req) {
@@ -98,7 +103,7 @@ public class TransactionScannerIntegrationTest {
     LocalDateTime now = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0);
     // post 6 transactions in same hour
     IntStream.range(0, 6)
-        .forEach(i -> postTxn(makeRequest(user, BigDecimal.valueOf(10), now.plusMinutes(i * 5))));
+        .forEach(i -> postTxn(makeRequest(user, BigDecimal.valueOf(10), TransactionType.DEPOSIT)));
 
     List<TransactionResponse> suspicious = getSuspicious(user);
     assertThat(suspicious).extracting(TransactionResponse::getUserId).contains(user);
@@ -111,8 +116,8 @@ public class TransactionScannerIntegrationTest {
   void testHighVolumeTransactions() {
     String user = "highVolUser";
     // threshold amount = 10000
-    postTxn(makeRequest(user, new BigDecimal("15000"), LocalDateTime.now()));
-    postTxn(makeRequest(user, new BigDecimal("15000"), LocalDateTime.now().plusMinutes(1)));
+    postTxn(makeRequest(user, new BigDecimal("15000"), TransactionType.DEPOSIT));
+    postTxn(makeRequest(user, new BigDecimal("15000"), TransactionType.DEPOSIT));
 
     List<TransactionResponse> suspicious = getSuspicious(user);
     assertThat(suspicious).extracting(TransactionResponse::getUserId).contains(user);
@@ -126,10 +131,10 @@ public class TransactionScannerIntegrationTest {
     String user = "rapidUser";
     LocalDateTime now = LocalDateTime.now().withSecond(0).withNano(0);
     // 3 in 5 minute window
-    postTxn(makeRequest(user, BigDecimal.valueOf(1), now));
-    postTxn(makeRequest(user, BigDecimal.valueOf(2), now.plusMinutes(1)));
-    postTxn(makeRequest(user, BigDecimal.valueOf(3), now.plusMinutes(2)));
-    postTxn(makeRequest(user, BigDecimal.valueOf(3), now.plusMinutes(2)));
+    postTxn(makeRequest(user, BigDecimal.valueOf(1), TransactionType.DEPOSIT));
+    postTxn(makeRequest(user, BigDecimal.valueOf(2), TransactionType.DEPOSIT));
+    postTxn(makeRequest(user, BigDecimal.valueOf(3), TransactionType.DEPOSIT));
+    postTxn(makeRequest(user, BigDecimal.valueOf(3), TransactionType.DEPOSIT));
 
     List<TransactionResponse> suspicious = getSuspicious(user);
     assertThat(suspicious).extracting(TransactionResponse::getUserId).contains(user);

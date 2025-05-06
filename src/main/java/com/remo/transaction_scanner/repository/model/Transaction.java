@@ -1,5 +1,6 @@
 package com.remo.transaction_scanner.repository.model;
 
+import com.remo.transaction_scanner.model.TransactionType;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -26,4 +27,8 @@ public class Transaction {
 
   @Column(name = "timestamp", nullable = false)
   private Timestamp timestamp;
+
+  @Column(name = "transaction_type", nullable = false)
+  @Enumerated(EnumType.STRING)
+  private TransactionType transactionType;
 }

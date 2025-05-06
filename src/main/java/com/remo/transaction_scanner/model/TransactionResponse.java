@@ -19,5 +19,6 @@ public class TransactionResponse {
   private BigDecimal amount;
   private Timestamp timestamp;
   private Boolean suspicious;
+  private TransactionType transactionType;
   @Builder.Default private List<String> suspiciousReason = new ArrayList<>();
 }
